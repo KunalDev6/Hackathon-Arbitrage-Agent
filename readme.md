@@ -12,7 +12,6 @@ The system consists of three main parts:
 ## Directory Structure
 
 ```
-SUBMISSION/
 ├── SmartContract/         
 │   ├── programs/           
 │   ├── tests/              
@@ -63,9 +62,6 @@ SUBMISSION/
 ### 1. Backend Setup
 
 ```bash
-# Navigate to the submission directory
-cd SUBMISSION
-
 # Create and activate a virtual environment (optional but recommended)
 python -m venv venv
 source venv/bin/activate  # On Windows use `venv\Scripts\activate`
@@ -90,10 +86,10 @@ Refer to the detailed instructions in the respective READMEs:
 A typical workflow might involve:
 
 ```bash
-# From SUBMISSION/SmartContract/
+# From /SmartContract/
 anchor build
 
-# From SUBMISSION/SmartContract/flash-loan-ui/
+# From /SmartContract/flash-loan-ui/
 npm install
 ```
 
@@ -113,10 +109,10 @@ Check `app.py` for potential command-line arguments (like `--simulate` or port s
 
 ### 2. Running the Smart Contract & UI
 
-Use the scripts provided within the `SUBMISSION/SmartContract/` directory. These handle deployment and UI startup together.
+Use the scripts provided within the `/SmartContract/` directory. These handle deployment and UI startup together.
 
 ```bash
-cd SUBMISSION/SmartContract/
+cd /SmartContract/
 
 # Example: Run locally (starts local validator, deploys, starts UI)
 ./run-gui-and-test.sh
@@ -126,5 +122,5 @@ cd SUBMISSION/SmartContract/
 
 # Access the React UI (usually http://localhost:3000)
 ```
-Consult the scripts and `SmartContract/README.md` for specifics on different deployment options.
+Consult the scripts and `/README.md` for specifics on different deployment options.
 
