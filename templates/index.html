@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solana Arbitrage Analyzer</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; padding: 20px; background-color: #f4f4f4; color: #333; }
+        .container { max-width: 1000px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1, h2 { color: #333; }
+        #status-section, #portia-section { margin-bottom: 20px; padding: 15px; background-color: #eef; border-radius: 5px; }
+        #opportunities-section { margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #4CAF50; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        pre { background-color: #eee; padding: 10px; border-radius: 5px; white-space: pre-wrap; word-wrap: break-word; }
+        .status-label { font-weight: bold; min-width: 150px; display: inline-block; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Solana Arbitrage Analyzer</h1>
+
+        <div id="status-section">
+            <h2>Status</h2>
+            <div><span class="status-label">Current Status:</span> <span id="current-status">Loading...</span></div>
+            <div><span class="status-label">Target Tokens:</span> <span id="target-tokens">Loading...</span></div>
+            <div><span class="status-label">Analysis Start:</span> <span id="start-time">Loading...</span></div>
+            <div><span class="status-label">Analysis End:</span> <span id="end-time">Loading...</span></div>
+            <div><span class="status-label">Last Scan:</span> <span id="last-scan-time">Loading...</span></div>
+            <div><span class="status-label">Opportunities Found:</span> <span id="opportunities-found">Loading...</span></div>
+        </div>
+
+        <div id="portia-section">
+            <h2>Portia Token Identification</h2>
+            <div><span class="status-label">Run Output:</span> <pre id="portia-output">Loading...</pre></div>
+            <div id="portia-error-block" style="display: none;">
+                <span class="status-label error">Run Error:</span> <pre id="portia-error" class="error">Loading...</pre>
+            </div>
+        </div>
+
+        <div id="opportunities-section">
+            <h2>Arbitrage Opportunities Found (This Session)</h2>
+            <table id="opportunities-table">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Symbol</th>
+                        <th>Buy Exchange</th>
+                        <th>Buy Price</th>
+                        <th>Sell Exchange</th>
+                        <th>Sell Price</th>
+                        <th>Profit (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data will be populated by JavaScript -->
+                    <tr><td colspan="7">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function formatDateTime(isoString) {
+            if (!isoString) return "N/A";
+            try {
+                return new Date(isoString).toLocaleString();
+            } catch (e) {
+                return isoString; // Return original if parsing fails
+            }
+        }
+
+        function updateStatus() {
+            fetch('/api/status')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('current-status').textContent = data.status || 'N/A';
+                    document.getElementById('target-tokens').textContent = data.target_tokens ? data.target_tokens.join(', ') : 'N/A';
+                    document.getElementById('start-time').textContent = formatDateTime(data.start_time);
+                    document.getElementById('end-time').textContent = formatDateTime(data.end_time);
+                    document.getElementById('last-scan-time').textContent = formatDateTime(data.last_scan_time);
+                    document.getElementById('opportunities-found').textContent = data.opportunities_found_session || 0;
+                    document.getElementById('portia-output').textContent = data.portia_run_output || 'N/A';
+                    
+                    const portiaErrorBlock = document.getElementById('portia-error-block');
+                    const portiaErrorPre = document.getElementById('portia-error');
+                    if (data.portia_run_error) {
+                        portiaErrorPre.textContent = data.portia_run_error;
+                        portiaErrorBlock.style.display = 'block';
+                    } else {
+                        portiaErrorBlock.style.display = 'none';
+                    }
+                })
+                .catch(error => console.error('Error fetching status:', error));
+        }
+
+        function updateOpportunities() {
+            fetch('/api/opportunities')
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById('opportunities-table').querySelector('tbody');
+                    tableBody.innerHTML = ''; // Clear existing rows
+
+                    if (data && data.length > 0) {
+                        // Sort by timestamp descending (most recent first)
+                        data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                        
+                        data.forEach(opp => {
+                            const row = tableBody.insertRow();
+                            row.innerHTML = `
+                                <td>${formatDateTime(opp.timestamp)}</td>
+                                <td>${opp.symbol}</td>
+                                <td>${opp.buy_exchange}</td>
+                                <td>${opp.buy_price ? opp.buy_price.toFixed(6) : 'N/A'}</td>
+                                <td>${opp.sell_exchange}</td>
+                                <td>${opp.sell_price ? opp.sell_price.toFixed(6) : 'N/A'}</td>
+                                <td>${opp.profit_percent ? opp.profit_percent.toFixed(4) : 'N/A'}%</td>
+                            `;
+                        });
+                    } else {
+                        tableBody.innerHTML = '<tr><td colspan="7">No opportunities found yet...</td></tr>';
+                    }
+                })
+                .catch(error => console.error('Error fetching opportunities:', error));
+        }
+
+        // Initial load
+        updateStatus();
+        updateOpportunities();
+
+        // Refresh data every 10 seconds
+        setInterval(() => {
+            updateStatus();
+            updateOpportunities();
+        }, 10000);
+    </script>
+</body>
+</html> 

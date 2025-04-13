@@ -1,0 +1,5 @@
+requests>=2.32.3
+python-dotenv>=1.0.1
+tenacity>=8.0.0 # For retries
+numpy>=1.21.0 # For potential calculations if needed
+Flask>=2.3.0 # Added for Web UI 
