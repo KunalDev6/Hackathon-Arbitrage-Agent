@@ -1,0 +1,4 @@
+[submodule "SmartContract"]
+    path = SmartContract
+    url = https://github.com/Kalash-F/Hackathon-backend.git
+    branch = main
